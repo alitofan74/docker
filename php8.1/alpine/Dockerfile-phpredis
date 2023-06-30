@@ -1,0 +1,50 @@
+FROM php:8.1-fpm-alpine
+
+ENV HOME /www-data
+USER root
+
+RUN apk update
+RUN apk add --no-cache \
+    $PHPIZE_DEPS \
+    openssl-dev \
+    linux-headers
+
+RUN  apk add git libzip-dev zip grep  libpng-dev nodejs yarn icu-dev \
+    libzip-dev
+
+
+
+RUN docker-php-source extract \
+    && docker-php-ext-install pdo_mysql  gd zip intl\
+    && docker-php-source delete
+
+# RUN pecl channel-update https://pecl.php.net
+
+
+# RUN pecl install redis xdebug \
+#     && pecl install \
+#     && docker-php-ext-enable redis \
+#     && docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
+COPY config/php-redis.ini  /usr/local/etc/php/php.ini
+
+# RUN pecl install mongodb \
+#     && docker-php-ext-enable mongodb
+
+# RUN docker-php-ext-enable mongodb
+    
+#add php user
+#RUN useradd -ms /bin/bash php
+
+#install compose
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# RUN chown -R www-data /www-data/.composer
+# RUN mkdir /www-data/.vscode-server
+# RUN chown -R www-data /www-data/.vscode-server
+USER www-data
+WORKDIR /var/www
+EXPOSE 9000
+

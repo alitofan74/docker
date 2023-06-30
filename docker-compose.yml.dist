@@ -1,0 +1,42 @@
+version: "3"
+services:
+
+  xphp81:
+    build: 
+      context: ./php8.1/alpine
+      dockerfile: Dockerfile-phpredis
+    container_name: x_php81
+    volumes:
+      - ${WEB_VOLUME}:/var/www/
+    links:
+      - xmysql57
+    #   - mongo
+
+  xmysql57:
+    container_name: x_mysql57
+    image: mysql:5.7
+    command: --sql_mode="NO_ENGINE_SUBSTITUTION"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3324:3306"
+
+  xnginx:
+    build: ./nginx/alpine
+    container_name: x_nginx
+    # dns:
+    #   - 192.168.0.254
+    #   - 8.8.8.8
+    ports:
+      - "8084:80"
+      - "8087:8087"
+    volumes:
+      - ${WEB_VOLUME}:/var/www/
+      - ./nginx/conf/sites-enabled/:/etc/nginx/sites-enabled/
+      - /var/log/nginx/:/etc/nginx/logs/
+      - /tmp/:/tmp/
+      - /etc/localtime:/etc/localtime:ro
+    links:
+      - xmysql57
+      - xphp81
+      # - mongo
