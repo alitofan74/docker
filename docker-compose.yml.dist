@@ -10,7 +10,6 @@ services:
       - ${WEB_VOLUME}:/var/www/
     links:
       - xmysql57
-    #   - mongo
 
   xmysql57:
     container_name: x_mysql57
@@ -28,8 +27,9 @@ services:
     #   - 192.168.0.254
     #   - 8.8.8.8
     ports:
-      - "8084:80"
-      - "8087:8087"
+      - "8084:80" #nginx
+      - "8087:8087" #available for another project
+      - "8088:8088" #project presensi
     volumes:
       - ${WEB_VOLUME}:/var/www/
       - ./nginx/conf/sites-enabled/:/etc/nginx/sites-enabled/
