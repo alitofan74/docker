@@ -20,7 +20,6 @@ if [ "$1" == "help" ]; then
   echo "============================================================="
   echo "version         : show script version"
   echo "link            : *create a link to /usr/local/bin/"
-  echo "                : login DWC Gateway"
   echo "docker rebuild  : docker rebuild all containers"
   echo "docker start    : docker start all containers"
   echo "docker stop     : docker stop all containers"
@@ -29,7 +28,7 @@ if [ "$1" == "help" ]; then
   exit 0
 fi
 if [ "$1" == "version" ]; then
-  echo "DWC Script v${TOFAN_VERSION}"
+  echo "Shorcut Script v${TOFAN_VERSION}"
   exit 0
 fi
 if [ "$1" == "link" ]; then
