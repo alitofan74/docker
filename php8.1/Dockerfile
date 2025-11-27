@@ -19,6 +19,12 @@ RUN pecl install redis\
 
 RUN apt-get install -y nodejs yarn
 
+# Install dependencies for mongodb extension
+RUN apk add --no-cache autoconf g++ make openssl-dev
+
+# Install mongodb driver
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 COPY config/php-redis.ini  /usr/local/etc/php/
 #add php user

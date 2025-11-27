@@ -8,8 +8,9 @@ services:
     container_name: x_php81
     volumes:
       - ${WEB_VOLUME}:/var/www/
-    links:
-      - xmysql57
+    depends_on:
+    - xmysql57
+    - xmongo
 
   xmysql57:
     container_name: x_mysql57
@@ -23,9 +24,6 @@ services:
   xnginx:
     build: ./nginx/alpine
     container_name: x_nginx
-    # dns:
-    #   - 192.168.0.254
-    #   - 8.8.8.8
     ports:
       - "8084:80" #nginx
       - "8087:8087" #available for another project
@@ -33,10 +31,40 @@ services:
     volumes:
       - ${WEB_VOLUME}:/var/www/
       - ./nginx/conf/sites-enabled/:/etc/nginx/sites-enabled/
-      - /var/log/nginx/:/etc/nginx/logs/
+      - ./nginx/logs:/var/log/nginx/
       - /tmp/:/tmp/
       - /etc/localtime:/etc/localtime:ro
-    links:
-      - xmysql57
+    depends_on:
       - xphp81
-      # - mongo
+      - xmysql57
+      - xmongo
+  
+  xnode:
+    build:
+      context: ../     # root folder Me. satu tingkat sub folder diatas folder
+      dockerfile: docker/node/Dockerfile
+    container_name: x_node
+    working_dir: /app
+    volumes:
+      - ${NODE_VOLUME}:/app
+      - ${NODE_VOLUME}/wa-service/.wwebjs_auth:/app/wa-service/.wwebjs_auth
+    ports:
+      - "3001:3001"
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - xphp81
+  
+  xmongo:
+    container_name: x_mongo
+    image: mongo:6
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
+    ports:
+      - "27027:27017"
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/config:/data/configdb
