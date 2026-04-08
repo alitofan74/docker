@@ -1,19 +1,19 @@
 version: "3"
 services:
 
-  xphp81:
+  php81:
     build: 
       context: ./php8.1/alpine
       dockerfile: Dockerfile-phpredis
-    container_name: x_php81
+    container_name: php81
     volumes:
       - ${WEB_VOLUME}:/var/www/
     depends_on:
     - xmysql57
     - xmongo
 
-  xmysql57:
-    container_name: x_mysql57
+  mysql57:
+    container_name: mysql57
     image: mysql:5.7
     command: --sql_mode="NO_ENGINE_SUBSTITUTION"
     environment:
@@ -21,9 +21,9 @@ services:
     ports:
       - "3324:3306"
 
-  xnginx:
+  nginx:
     build: ./nginx/alpine
-    container_name: x_nginx
+    container_name: nginx
     ports:
       - "8084:80" #nginx
       - "8087:8087" #available for another project
@@ -39,25 +39,8 @@ services:
       - xmysql57
       - xmongo
   
-  xnode:
-    build:
-      context: ../     # root folder Me. satu tingkat sub folder diatas folder
-      dockerfile: docker/node/Dockerfile
-    container_name: x_node
-    working_dir: /app
-    volumes:
-      - ${NODE_VOLUME}:/app
-      - ${NODE_VOLUME}/wa-service/.wwebjs_auth:/app/wa-service/.wwebjs_auth
-    ports:
-      - "3001:3001"
-      - "5173:5173"
-    environment:
-      - NODE_ENV=development
-    depends_on:
-      - xphp81
-  
-  xmongo:
-    container_name: x_mongo
+  mongo:
+    container_name: mongo
     image: mongo:6
     restart: always
     environment:
