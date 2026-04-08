@@ -9,8 +9,8 @@ services:
     volumes:
       - ${WEB_VOLUME}:/var/www/
     depends_on:
-    - xmysql57
-    - xmongo
+    - mysql57
+    - mongo
 
   mysql57:
     container_name: mysql57
@@ -35,9 +35,9 @@ services:
       - /tmp/:/tmp/
       - /etc/localtime:/etc/localtime:ro
     depends_on:
-      - xphp81
-      - xmysql57
-      - xmongo
+      - php81
+      - mysql57
+      - mongo
   
   mongo:
     container_name: mongo
