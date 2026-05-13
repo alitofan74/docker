@@ -1,0 +1,51 @@
+FROM php:8.4-fpm-alpine
+
+ENV HOME /www-data
+USER root
+
+# 🔧 Install dependencies (digabung biar efisien)
+RUN apk update && apk add --no-cache \
+    $PHPIZE_DEPS \
+    openssl-dev \
+    linux-headers \
+    git \
+    libzip-dev \
+    zip \
+    grep \
+    libpng-dev \
+    nodejs \
+    yarn \
+    icu-dev \
+    curl-dev
+
+# 🔧 Install PHP extensions
+RUN docker-php-source extract \
+    && docker-php-ext-install pdo_mysql mysqli gd zip intl \
+    && docker-php-source delete
+
+# 🔥 Install MongoDB extension (fix PECL)
+RUN pecl channel-update pecl.php.net \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
+# 🔧 Copy php.ini
+COPY config/php-redis.ini /usr/local/etc/php/php.ini
+
+# 🔧 Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- \
+    --install-dir=/usr/local/bin \
+    --filename=composer
+
+# 🔥 FIX PERMISSION
+ARG UID=1000
+ARG GID=1000
+
+RUN addgroup -g ${GID} appgroup \
+    && adduser -D -G appgroup -u ${UID} appuser
+
+RUN chown -R appuser:appgroup /var/www
+
+USER appuser
+WORKDIR /var/www
+
+EXPOSE 9000
