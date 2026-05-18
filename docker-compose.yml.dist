@@ -1,5 +1,4 @@
 services:
-
   php81:
     build: 
       context: ./php8.1/alpine
@@ -7,6 +6,9 @@ services:
     container_name: php81
     volumes:
       - ${WEB_VOLUME}:/var/www/
+    networks:
+      - app
+      - data
 
   php84:
     build: 
@@ -19,15 +21,9 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - ${WEB_VOLUME}:/var/www/
-
-  mysql57:
-    container_name: mysql57
-    image: mysql:5.7
-    command: --sql_mode="NO_ENGINE_SUBSTITUTION"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "3324:3306"
+    networks:
+      - app
+      - data
 
   mysql8:
     container_name: mysql8
@@ -37,6 +33,10 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "3325:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    networks:
+      - data
   
   nginx:
     build: ./nginx/alpine
@@ -53,6 +53,8 @@ services:
       - ./nginx/logs/:/var/log/nginx/
       - /tmp/:/tmp/
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      - app
   
   mongo:
     container_name: mongo
@@ -66,6 +68,8 @@ services:
     volumes:
       - ./mongodb/data:/data/db
       - ./mongodb/config:/data/configdb
+    networks:
+      - data
   
   mongo-express:
     image: mongo-express:latest
@@ -79,10 +83,12 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_BASICAUTH_USER}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_BASICAUTH_PASS}
       ME_CONFIG_MONGODB_SERVER: mongo
+    networks:
+      - data
 
   node-wa:
     build:
-      context: ${NODE_VOLUME}/wa-service
+      context: ${NODE_VOLUME}/wa-service-v2
       dockerfile: Dockerfile
     container_name: node-wa
     working_dir: /app
@@ -91,9 +97,13 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ${NODE_VOLUME}/wa-service:/app
-      - ${NODE_VOLUME}/wa-service/sessions:/app/storage/sessions
+      - ${NODE_VOLUME}/wa-service-v2:/app
+      - /app/node_modules
+      - ${NODE_VOLUME}/wa-service-v2/sessions:/app/storage/sessions
     restart: unless-stopped
+    networks:
+      - app
+      - data
   
   # tiktok-bridge:
   #   build:
@@ -107,3 +117,10 @@ services:
   #   volumes:
   #     - ${WEB_VOLUME}/game:/app
   #     - /app/node_modules
+
+networks:
+  app:
+    driver: bridge
+
+  data:
+    driver: bridge

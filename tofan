@@ -8,10 +8,10 @@ DOCKER_COMPOSE=${DOCKER_PATH}docker-compose.yml
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
-TOFAN_VERSION=1-04072023
+TOFAN_VERSION=1-050102026
 TEXT_COLOR=${NC}
 echo -e ${TEXT_COLOR}
-echo "=====================TOFAN script v${DWC_VERSION}========================="
+echo "=====================TOFAN script v${TOFAN_VERSION}========================="
 if [ "$1" == "help" ]; then
   echo "Command version ${TOFAN_VERSION}"
   echo "Use command below"
@@ -50,6 +50,13 @@ if [ "$1" == "link" ]; then
 fi
 if [ "$1" == "docker" ]; then
   if [ "$2" == "rebuild" ]; then
+    if [ "$3" == "for" ]; then
+      echo "Rebuilding container $4..."
+      docker compose -f ${DOCKER_COMPOSE} build --no-cache $4
+      docker compose -f ${DOCKER_COMPOSE} up -d $4
+      exit 0
+    fi    
+
     #rebuild and restart docker
     status2=$(docker images -f "dangling=true" -q | wc -l)
     # Delete all none images
@@ -61,19 +68,18 @@ if [ "$1" == "docker" ]; then
         echo "done"
     fi
     #docker network create as_bridge;
-    docker-compose -f ${DOCKER_COMPOSE} up --build -d 
-    docker-compose -f ${DOCKER_COMPOSE} ps
+    docker compose -f ${DOCKER_COMPOSE} up --build -d 
+    docker compose -f ${DOCKER_COMPOSE} ps
     exit 0
   fi
   if [ "$2" == "start" ]; then
-    docker-compose -f ${DOCKER_COMPOSE} stop
-    docker-compose -f ${DOCKER_COMPOSE} start
-    docker-compose -f ${DOCKER_COMPOSE} ps
+    docker compose -f ${DOCKER_COMPOSE} restart
+    docker compose -f ${DOCKER_COMPOSE} ps
     exit 0
   fi
   if [ "$2" == "stop" ]; then
-    docker-compose -f ${DOCKER_COMPOSE} stop;
-    docker-compose -f ${DOCKER_COMPOSE} ps;
+    docker compose -f ${DOCKER_COMPOSE} stop;
+    docker compose -f ${DOCKER_COMPOSE} ps;
     exit 0
   fi
   if [ "$2" == "open" ]; then
@@ -83,6 +89,10 @@ if [ "$1" == "docker" ]; then
     fi
     docker exec -it -uwww-data $3 sh
     exit 0 
+  fi
+  if [ "$2" == "logs" ]; then
+    docker compose -f ${DOCKER_COMPOSE} logs -f $3
+    exit 0
   fi
   exit 0
 fi
