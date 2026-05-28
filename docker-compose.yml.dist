@@ -1,14 +1,4 @@
 services:
-  php81:
-    build: 
-      context: ./php8.1/alpine
-      dockerfile: Dockerfile-phpredis
-    container_name: php81
-    volumes:
-      - ${WEB_VOLUME}:/var/www/
-    networks:
-      - app
-      - data
 
   php84:
     build: 
@@ -21,6 +11,27 @@ services:
     user: "${UID}:${GID}"
     volumes:
       - ${WEB_VOLUME}:/var/www/
+    networks:
+      - app
+      - data
+
+  busur-worker:
+    build: 
+      context: ./php8.4/alpine
+      args:
+        UID: ${UID}
+        GID: ${GID}
+      dockerfile: Dockerfile-php84redis
+    container_name: busur-worker
+    user: "${UID}:${GID}"
+    working_dir: /var/www/busur
+    volumes:
+      - ${WEB_VOLUME}:/var/www/
+    depends_on:
+      - mysql8
+      - php84
+    restart: always
+    command: php artisan queue:work
     networks:
       - app
       - data
@@ -42,7 +53,8 @@ services:
     build: ./nginx/alpine
     container_name: nginx
     ports:
-      - "8084:80" #nginx
+      - "8083:80" #nginx
+      - "8084:8084" #fitclose!
       - "8085:8085" #busur
       - "8086:8086" #lapakreina
       - "8087:8087" #inventory
